@@ -1,0 +1,146 @@
+---
+# Validating all used variables
+- name: Validate VLAN config
+  ansible.utils.validate:
+    data: "{{ opnsense_vlans }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_vlans.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_vlans.keys() | length > 0
+
+- name: Validate interfaces config
+  ansible.utils.validate:
+    data: "{{ opnsense_interfaces }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_interfaces.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_vlans.keys() | length > 0
+
+- name: Validate gateway config
+  ansible.utils.validate:
+    data: "{{ opnsense_gateways }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_gateways.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_gateways.keys() | length > 0
+
+- name: Validate gateway-groups config
+  ansible.utils.validate:
+    data: "{{ opnsense_gateway_groups }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_gateway_groups.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_gateways.keys() | length > 0
+
+- name: Validate dhcp controller config
+  ansible.utils.validate:
+    data: "{{ opnsense_dhcp }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_dhcp.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_dhcp.keys() | length > 0
+
+- name: Validate dhcp subnets config
+  ansible.utils.validate:
+    data: "{{ opnsense_dhcp_subnets }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_dhcp_subnets.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_dhcp.keys() | length > 0
+
+- name: Validate dhcp reservations config
+  ansible.utils.validate:
+    data: "{{ opnsense_dhcp_reservations }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_dhcp_reservations.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_dhcp.keys() | length > 0
+
+- name: Validate aliases config
+  ansible.utils.validate:
+    data: "{{ opnsense_aliases }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_aliases.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_aliases.keys() | length > 0
+
+- name: Validate NAT config
+  ansible.utils.validate:
+    data: "{{ opnsense_nat_outbound }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_nat_outbound.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_nat_outbound.keys() | length > 0
+
+- name: Validate shaper pipes config
+  ansible.utils.validate:
+    data: "{{ opnsense_shaper_pipes }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_shaper_pipes.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_shaper_pipes.keys() | length > 0
+
+- name: Validate shaper queues config
+  ansible.utils.validate:
+    data: "{{ opnsense_shaper_queues }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_shaper_queues.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_shaper_pipes.keys() | length > 0
+
+- name: Validate shaper rules config
+  ansible.utils.validate:
+    data: "{{ opnsense_shaper_rules }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_shaper_rules.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_shaper_pipes.keys() | length > 0
+
+- name: Validate rules config
+  ansible.utils.validate:
+    data: "{{ opnsense_rules }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_rules.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_rules.keys() | length > 0
+
+- name: Validate tailscale config
+  ansible.utils.validate:
+    data: "{{ opnsense_tailscale_advertised_routes }}"
+    criteria:
+      - "{{ lookup('file',  '../criteria/opnsense_tailscale_advertised_routes.json') | from_json }}"
+    engine: ansible.utils.jsonschema
+  when: opnsense_tailscale_advertised_routes | length > 0
+
+# including required tasks
+- name: include VLAN management
+  include_tasks: vlans.yml
+  when: opnsense_vlans.keys() | length > 0
+
+- name: include gateway management
+  include_tasks: gateways.yml
+  when: opnsense_gateways.keys() | length > 0
+
+- name: include tailscale management
+  include_tasks: tailscale.yml
+  when: opnsense_tailscale_advertised_routes | length > 0
+
+- name: include dhcp management
+  include_tasks: dhcp.yml
+  when: opnsense_dhcp.keys() | length > 0
+
+- name: include alias management
+  include_tasks: aliases.yml
+  when: opnsense_aliases.keys() | length > 0
+
+- name: include NAT management
+  include_tasks: nat.yml
+  when: opnsense_nat_outbound.keys() | length > 0
+
+- name: include shaper management
+  include_tasks: shaper.yml
+  when: opnsense_shaper_pipes.keys() | length > 0
+
+- name: include rule management
+  include_tasks: rules.yml
+  when: opnsense_rules.keys() | length > 0

@@ -1,0 +1,59 @@
+---
+- name: Pulling existing VLANs
+  oxlorg.opnsense.list:
+    target: interface_vlan
+  register: existing_vlans
+
+- name: Purging unconfigured VLANs
+  oxlorg.opnsense.interface_vlan:
+    description: "{{ existing_vlan_id }}"
+
+    state: "absent"
+    reload: false
+
+  when: existing_vlan_id not in opnsense_vlans
+
+  vars:
+    existing_vlan_id: "{{ existing_vlan_item.description }}"
+
+  loop_control:
+    loop_var: existing_vlan_item
+    label: "{{ existing_vlan_item.description }} - {{ existing_vlan_item.vlan }}"
+  with_items: "{{ existing_vlans.data }}"
+  register: purged_vlans
+
+- name: Creating VLANs
+  oxlorg.opnsense.interface_vlan:
+    description: "{{ vlan_id }}"
+
+    device: "{{ vlan.device | default(omit) }}"
+    vlan: "{{ vlan.vlan | default(omit) }}"
+    parent: "{{ vlan.parent | default(omit) }}"
+
+    state: "present"
+    reload: false
+
+  vars:
+    vlan: "{{ vlan_item.value }}"
+    vlan_id: "{{ vlan_item.key }}"
+
+  loop_control:
+    loop_var: vlan_item
+  with_dict: "{{ opnsense_vlans }}"
+  register: created_vlans
+
+- name: Reload VLAN config
+  oxlorg.opnsense.reload:
+    target: "interface_vlan"
+  when: purged_vlans.changed or created_vlans.changed
+
+# Ask for configuring interfaces manually
+- name: Ask for manual interface configuration
+  ansible.builtin.pause:
+    prompt:
+      "\n\nYou now need to do the interface assignments and configuration by hand!\n\
+      The current configuration advices the following assignments and IPs:\n\n\
+      {{ opnsense_interfaces | community.general.to_prettytable }}\n\n\
+      If the assignments you did matches this configuration hit <ENTER> AFTER your done configuring everything\n\
+      otherwise use <CTRL-C> and <a> to abort the playbook run...\n\n"
+  when: created_vlans.changed and opnsense_interfaces | length > 0

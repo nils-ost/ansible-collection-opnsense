@@ -1,0 +1,98 @@
+{
+  "type": "object",
+  "propertyNames": {
+    "pattern": "^(((?!25?[6-9])[12]\\d|[1-9])?\\d\\.?\\b){4}/([1-2]?[0-9]|3[0-2])$"
+  },
+  "patternProperties": {
+    "^.*": {
+      "type": "object",
+      "properties": {
+        "desc": {
+          "type": "string"
+        },
+        "pools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "gateway": {
+          "type": "string",
+          "pattern": "^(((?!25?[6-9])[12]\\d|[1-9])?\\d\\.?\\b){4}$"
+        },
+        "dns": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^(((?!25?[6-9])[12]\\d|[1-9])?\\d\\.?\\b){4}$"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^(((?!25?[6-9])[12]\\d|[1-9])?\\d\\.?\\b){4}$"
+              }
+            }
+          ]
+        },
+        "routes": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^.*,.*$"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^.*,.*$"
+              }
+            }
+          ]
+        },
+        "domain": {
+          "type": "string"
+        },
+        "domain_search": {
+          "type": "string"
+        },
+        "ntp_servers": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "time_servers": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "next_server": {
+          "type": "string"
+        },
+        "tftp_server": {
+          "type": "string"
+        },
+        "tftp_file": {
+          "type": "string"
+        }
+      },
+      "required": ["pools"]
+    }
+  }
+}

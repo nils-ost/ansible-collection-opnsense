@@ -1,0 +1,74 @@
+---
+- name: Pulling existing gateways
+  oxlorg.opnsense.list:
+    target: gateway
+  register: existing_gateways
+
+- name: Purging unconfigured gateways
+  oxlorg.opnsense.gateway:
+    name: "{{ existing_gateway_id }}"
+
+    match_fields: ["name"]
+    state: "absent"
+    reload: false
+
+  when: existing_gateway_id not in opnsense_gateways
+
+  vars:
+    existing_gateway_id: "{{ existing_gateway_item.name }}"
+
+  loop_control:
+    loop_var: existing_gateway_item
+    label: "{{ existing_gateway_item.name }}"
+  with_items: "{{ existing_gateways.data }}"
+  register: purged_gateways
+
+- name: Creating gateways
+  oxlorg.opnsense.gateway:
+    name: "{{ gateway_id }}"
+    description: "{{ gateway.desc | default(omit) }}"
+
+    interface: "{{ gateway.int | default(omit) }}"
+    gateway: "{{ gateway.ip | default(omit) }}"
+
+    default_gw: "{{ gateway.default | default(False) }}"
+    far_gw: "{{ gateway.far | default(False) }}"
+    priority: "{{ gateway.priority | default(255) }}"
+    weight: "{{ gateway.weight | default(1) }}"
+
+    monitor_disable: "{{ gateway.monitor_disable | default(False) }}"
+    monitor: "{{ gateway.monitor | default(omit) }}"
+    time_period: "{{ gateway.time_period | default(30) }}"
+    force_down: "{{ gateway.force_down | default(False) }}"
+
+    match_fields: ["name"]
+    state: "present"
+    reload: false
+
+  vars:
+    gateway: "{{ gateway_item.value }}"
+    gateway_id: "{{ gateway_item.key }}"
+
+  loop_control:
+    loop_var: gateway_item
+    label: "{{ gateway_item.key }}"
+  with_dict: "{{ opnsense_gateways }}"
+  register: created_gateways
+
+- name: Reload gateway config
+  oxlorg.opnsense.reload:
+    target: "gateway"
+  when: purged_gateways.changed or created_gateways.changed
+
+# Ask for configuring gateway groups manually
+- name: Ask for manual gateway group configuration
+  ansible.builtin.pause:
+    prompt: "\n\nYou now need to do the gateway group configuration by hand!\n\
+      The current configuration advices the following groups:\n\n\
+      {{ opnsense_gateway_groups | community.general.to_prettytable }}\n\
+      SET PURGED GATEWAYS TO NEVER\n\n\
+      Now is also a good time to go to the outbound interfaceses and set the default router\n\n\
+      AFTER your done configuring everything hit <ENTER>\n\
+      otherwise use <CTRL-C> and <a> to abort the playbook run...\n\n\
+      You might reboot the router now for rules to be configured correctly\n\n"
+  when: (purged_gateways.changed or created_gateways.changed) and opnsense_gateway_groups | length > 0

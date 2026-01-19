@@ -1,0 +1,16 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "patternProperties": {
+      "name": {
+        "type": "string"
+      },
+      "^((?!name).)*$": {
+        "type": "string",
+        "pattern": "^tier[1-9]$"
+      }
+    },
+    "required": ["name"]
+  }
+}

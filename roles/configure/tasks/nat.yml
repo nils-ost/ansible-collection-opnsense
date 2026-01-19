@@ -1,0 +1,49 @@
+---
+- name: Pulling existing NAT outbounds
+  oxlorg.opnsense.list:
+    target: nat_source
+  register: existing_outbounds
+
+- name: Purging unconfigured NAT outbounds
+  oxlorg.opnsense.nat_source:
+    description: "{{ existing_outbound_id }}"
+
+    state: "absent"
+    match_fields: ["description"]
+
+  when: existing_outbound_id not in opnsense_nat_outbound
+
+  vars:
+    existing_outbound_id: "{{ existing_outbound_item.description }}"
+
+  loop_control:
+    loop_var: existing_outbound_item
+    label: "{{ existing_outbound_item.description }}"
+  with_items: "{{ existing_outbounds.data }}"
+  register: purged_outbounds
+
+- name: Creating NAT outbounds
+  oxlorg.opnsense.nat_source:
+    description: "{{ outbound_id }}"
+    sequence: "{{ outbound.seq | default(omit) }}"
+
+    interface: "{{ outbound.int | default(omit) }}"
+    source: "{{ outbound.src | default(omit) }}"
+    source_port: "{{ outbound.src_port | default(omit) }}"
+    destination: "{{ outbound.dst | default(omit) }}"
+    destination_port: "{{ outbound.dst_port | default(omit) }}"
+    target: "{{ outbound.target | default(omit) }}"
+    target_port: "{{ outbound.target_port | default(omit) }}"
+
+    state: "present"
+    match_fields: ["description"]
+
+  vars:
+    outbound: "{{ outbound_item.value }}"
+    outbound_id: "{{ outbound_item.key }}"
+
+  loop_control:
+    loop_var: outbound_item
+    label: "{{ outbound_item.key }}"
+  with_dict: "{{ opnsense_nat_outbound }}"
+  register: created_outbounds

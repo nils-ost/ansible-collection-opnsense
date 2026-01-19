@@ -1,0 +1,84 @@
+---
+- name: Install tailscale addon
+  oxlorg.opnsense.package:
+    name: os-tailscale
+    action: install
+  register: tailscale_install
+
+- name: Playbook rerun needed
+  fail:
+    msg: installation of tailscale plugin needs a rerun of playbook
+  when: tailscale_install.changed
+
+- name: Fetch current tailscale config
+  oxlorg.opnsense.raw:
+    module: tailscale
+    controller: settings
+    command: get
+    action: get
+  register: existing_config
+
+- name: Extracing current tailscale routes from config
+  ansible.builtin.set_fact:
+    existing_routes: "{{ (existing_config.response.settings.subnets.subnet4 | rekey_on_member('description')) | default({}) }}"
+
+- name: Purging unconfigured tailscale routes
+  oxlorg.opnsense.raw:
+    module: tailscale
+    controller: settings
+    command: del_subnet
+    parameters: "{{ existing_route_item.key }}"
+    action: post
+
+  when: existing_route_item.value.description not in opnsense_tailscale_advertised_routes
+
+  loop_control:
+    loop_var: existing_route_item
+    label: "{{ existing_route_item.value.description }}"
+  with_dict: "{{ existing_config.response.settings.subnets.subnet4 | default({}) }}"
+  register: purged_routes
+
+- name: Creating tailscale routes
+  oxlorg.opnsense.raw:
+    module: tailscale
+    controller: settings
+    command: add_subnet
+    action: post
+    data:
+      subnet4:
+        description: "{{ route_item.key }}"
+        subnet: "{{ route_item.value }}"
+
+  when: route_item.key not in existing_routes
+
+  loop_control:
+    loop_var: route_item
+    label: "{{ route_item.key }}"
+  with_dict: "{{ opnsense_tailscale_advertised_routes }}"
+  register: created_routes
+
+- name: Restarting tailscale service
+  oxlorg.opnsense.raw:
+    module: tailscale
+    controller: service
+    command: reconfigure
+    action: post
+  when: existing_config.response.settings.enabled == "1" and (purged_routes.changed or created_routes.changed)
+
+# Manual step Info
+- name: Remember user for manual step
+  ansible.builtin.pause:
+    prompt: "\n\nYou reconfigured the advertised routes,\n\
+      don't forget to apply these changes in Tailscale Admin Console\n\n\
+      hit <ENTER> to continue\n\n"
+  when: existing_config.response.settings.enabled == "1" and (purged_routes.changed or created_routes.changed)
+
+# Ask for configuring authentication
+- name: Ask for finish service setup by hand
+  ansible.builtin.pause:
+    prompt:
+      "\n\nTailscale authentication needs to be done by Handy, this could be done now\n\
+      after this, the service can be enabled\n\n\
+      to continue the playbook run, hit <ENTER>\n\
+      to abort use <CTRL-C> and <a>\n\n"
+  when: existing_config.response.settings.enabled == "0"

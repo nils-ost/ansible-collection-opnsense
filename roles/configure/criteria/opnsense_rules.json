@@ -1,0 +1,91 @@
+{
+  "type": "object",
+  "patternProperties": {
+    "^.*": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["pass", "block", "reject"]
+        },
+        "int": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "dir": {
+          "type": "string",
+          "enum": ["in", "out"]
+        },
+        "ip_proto": {
+          "type": "string",
+          "enum": ["inet", "inet6", "inet46"]
+        },
+        "proto": {
+          "type": "string"
+        },
+        "src_invert": {
+          "type": "boolean"
+        },
+        "src": {
+          "type": "string"
+        },
+        "src_port": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "dst_invert": {
+          "type": "boolean"
+        },
+        "dst": {
+          "type": "string"
+        },
+        "dst_port": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quick": {
+          "type": "boolean"
+        },
+        "log": {
+          "type": "boolean"
+        },
+        "gw": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": ["int"]
+    }
+  }
+}

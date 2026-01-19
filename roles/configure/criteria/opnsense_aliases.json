@@ -1,0 +1,43 @@
+{
+  "type": "object",
+  "patternProperties": {
+    "^.*": {
+      "type": "object",
+      "properties": {
+        "desc": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "host",
+            "network",
+            "port",
+            "url",
+            "urltable",
+            "geoip",
+            "networkgroup",
+            "mac",
+            "dynipv6host",
+            "internal",
+            "external"
+          ]
+        },
+        "content": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      "required": ["type", "content"]
+    }
+  }
+}

@@ -1,0 +1,49 @@
+---
+- name: Pulling existing aliases
+  oxlorg.opnsense.list:
+    target: alias
+  register: existing_aliases
+
+- name: Purging unconfigured aliases
+  oxlorg.opnsense.alias:
+    name: "{{ existing_alias_id }}"
+
+    state: "absent"
+    reload: false
+
+  when: existing_alias_id not in opnsense_aliases
+
+  vars:
+    existing_alias_id: "{{ existing_alias_item.name }}"
+
+  loop_control:
+    loop_var: existing_alias_item
+    label: "{{ existing_alias_item.name }}"
+  with_items: "{{ existing_aliases.data }}"
+  register: purged_aliases
+
+- name: Creating aliases
+  oxlorg.opnsense.alias:
+    name: "{{ alias_id }}"
+    description: "{{ alias.desc | default(omit) }}"
+
+    type: "{{ alias.type | default(omit) }}"
+    content: "{{ alias.content | default(omit) }}"
+
+    state: "present"
+    reload: false
+
+  vars:
+    alias: "{{ alias_item.value }}"
+    alias_id: "{{ alias_item.key }}"
+
+  loop_control:
+    loop_var: alias_item
+    label: "{{ alias_item.key }}"
+  with_dict: "{{ opnsense_aliases }}"
+  register: created_aliases
+
+- name: Reload aliases config
+  oxlorg.opnsense.reload:
+    target: "alias"
+  when: purged_aliases.changed or created_aliases.changed

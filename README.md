@@ -2,10 +2,10 @@
 
 This repository contains the `nils_ost.opnsense` Ansible Collection.
 
-It came to life as I searched for a way to streamline automated installation and configuration of
-[Nginx Proxy Manager](https://nginxproxymanager.com/) instances for different environments, but couldn't find a viable library/collection.
-The project started out by develpoing local modules and roles for my playbooks, but as I like to use those on multiple projects it seamed
-to be a good idea to outsource everything in a collection.
+I like using [OPNsense](https://opnsense.org/) as a router for my different environments.
+Usually I use the same set of functions/services and don't like to write a custom playbook everytime.
+Therefore this collection (or more specific the role within) contains all configurations I've ever used, parameterized by structured variables.
+Now I just have to define the variables of services I like to configure, use the role `nils_ost.opnsense.configure`.
 And thats it: A collection for my purposes but available for everyone who find a need in using it ;)
 
 <!--start requires_ansible-->
@@ -13,8 +13,17 @@ And thats it: A collection for my purposes but available for everyone who find a
 
 ## External requirements
 
-Currently only the `requests` Python library is required by this collection, to be able to run the modules.
-As this collection is intended to do it's module call `delegate_to: localhost` it's enough to `pip install requests` locally.
+  * python:
+    * httpx *>=0.28.1*
+  * collections:
+    * community.general *>=12.2.0*
+    * oxlorg.opnsense *>=25.7.8*
+
+```
+pip install httpx
+ansible-galaxy collection install community.general --upgrade
+ansible-galaxy collection install oxlorg.opnsense
+```
 
 ## Included content
 
@@ -25,7 +34,7 @@ As this collection is intended to do it's module call `delegate_to: localhost` i
 
 Name | Description
 --- | ---
-[nils_ost.opnsense.basic_config](https://github.com/nils-ost/ansible-collection-opnsense/blob/main/roles/basic_config/README.md)|configures Nginx Proxy Manager with basic capabilities
+[nils_ost.opnsense.configure](https://github.com/nils-ost/ansible-collection-opnsense/blob/main/roles/configure/README.md)|configures OPNsense-Services by group or host variables
 
 ## Using this collection
 
@@ -71,6 +80,8 @@ See the
 This collection is mainly intended to be used by myself. Therefor I'm just developing the stuff I need for my current projects on a irregular basis.
 But if you find some benefit in this collection, feel free to use it. If you like to have some features added feel free to create a pull-request
 or write an issue with a feature-request and I'm going to see if I can make it happen.
+
+Currently I imagine a more guided setup of tailscale, as this is currently quite rudimentary. If this bothers me enough I'm going to tackle it...
 
 ## Licensing
 

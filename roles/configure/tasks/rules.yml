@@ -1,0 +1,66 @@
+---
+- name: Pulling existing rules
+  oxlorg.opnsense.list:
+    target: rule
+  register: existing_rules
+
+- name: Purging unconfigured rules
+  oxlorg.opnsense.rule:
+    description: "{{ existing_rule_id }}"
+
+    state: "absent"
+    match_fields: ["description"]
+    reload: false
+
+  when: existing_rule_id not in opnsense_rules
+
+  vars:
+    existing_rule_id: "{{ existing_rule_item.description }}"
+
+  loop_control:
+    loop_var: existing_rule_item
+    label: "{{ existing_rule_item.description }}"
+  with_items: "{{ existing_rules.data }}"
+  register: purged_rules
+
+- name: Creating rules
+  oxlorg.opnsense.rule:
+    description: "{{ rule_id }}"
+
+    action: "{{ rule.action | default(omit) }}"
+    interface: "{{ rule.int | default(omit) }}"
+    direction: "{{ rule.dir | default(omit) }}"
+    ip_protocol: "{{ rule.ip_proto | default(omit) }}"
+    protocol: "{{ rule.proto | default(omit) }}"
+
+    source_invert: "{{ rule.src_invert | default(omit) }}"
+    source_net: "{{ rule.src | default(omit) }}"
+    source_port: "{{ rule.src_port | default(omit) }}"
+    destination_invert: "{{ rule.dst_invert | default(omit) }}"
+    destination_net: "{{ rule.dst | default(omit) }}"
+    destination_port: "{{ rule.dst_port | default(omit) }}"
+
+    sequence: "{{ rule.seq | default(omit) }}"
+    quick: "{{ rule.quick | default(omit) }}"
+    log: "{{ rule.log | default(omit) }}"
+    gateway: "{{ rule.gw | default(omit) }}"
+    enabled: "{{ rule.enabled | default(true) }}"
+
+    state: "present"
+    match_fields: ["description"]
+    reload: false
+
+  vars:
+    rule: "{{ rule_item.value }}"
+    rule_id: "{{ rule_item.key }}"
+
+  loop_control:
+    loop_var: rule_item
+    label: "{{ rule_item.key }}"
+  with_dict: "{{ opnsense_rules }}"
+  register: created_rules
+
+- name: Reload rules config
+  oxlorg.opnsense.reload:
+    target: "rule"
+  when: purged_rules.changed or created_rules.changed

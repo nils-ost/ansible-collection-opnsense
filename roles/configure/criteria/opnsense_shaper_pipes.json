@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "patternProperties": {
+    "^.*": {
+      "type": "object",
+      "properties": {
+        "bandwidth": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "metric": {
+          "type": "string",
+          "enum": ["bit", "Kbit", "Mbit", "Gbit"]
+        },
+        "mask": {
+          "type": "string",
+          "enum": ["none", "src-ip", "dst-ip"]
+        },
+        "queue": {
+          "type": "string"
+        },
+        "buckets": {
+          "type": "string"
+        }
+      },
+      "required": ["bandwidth"]
+    }
+  }
+}

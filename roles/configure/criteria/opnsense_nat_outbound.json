@@ -1,0 +1,54 @@
+{
+  "type": "object",
+  "patternProperties": {
+    "^.*": {
+      "type": "object",
+      "properties": {
+        "seq": {
+          "type": "integer"
+        },
+        "int": {
+          "type": "string"
+        },
+        "src": {
+          "type": "string"
+        },
+        "src_port": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "dst": {
+          "type": "string"
+        },
+        "dst_port": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "target": {
+          "type": "string"
+        },
+        "target_port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    }
+  }
+}

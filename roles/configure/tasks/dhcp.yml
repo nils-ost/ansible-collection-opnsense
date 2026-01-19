@@ -1,0 +1,136 @@
+---
+# dnsmasq management (is done by raw calls, as the corresponding module has issues sometimes)
+- name: Fetch dnsmasq status
+  oxlorg.opnsense.raw:
+    module: dnsmasq
+    controller: settings
+    command: get
+  register: dnsmasq
+
+- name: Disable dnsmasq
+  oxlorg.opnsense.raw:
+    module: dnsmasq
+    controller: settings
+    command: set
+    action: post
+    data:
+      dnsmasq:
+        enable: 0
+  when: dnsmasq.response.dnsmasq.enable != "0"
+
+# dhcp controller management
+- name: Configure DHCP server
+  oxlorg.opnsense.dhcp_general:
+    enabled: "{{ opnsense_dhcp.enabled | default(false) }}"
+    interfaces: "{{ opnsense_dhcp.interfaces | default(omit) }}"
+    fw_rules: "{{ opnsense_dhcp.auto_fw_rules | default(true) }}"
+    lifetime: "{{ opnsense_dhcp.lifetime | default(omit) }}"
+
+# dhcp subnet management
+- name: Pulling existing DHCP subnets
+  oxlorg.opnsense.list:
+    target: dhcp_subnet
+  register: existing_subnets
+
+- name: Purging unconfigured DHCP subnets
+  oxlorg.opnsense.dhcp_subnet:
+    subnet: "{{ existing_subnet_id }}"
+
+    state: "absent"
+    match_fields: ["subnet"]
+    reload: false
+
+  when: existing_subnet_id not in opnsense_dhcp_subnets
+
+  vars:
+    existing_subnet_id: "{{ existing_subnet_item.subnet }}"
+
+  loop_control:
+    loop_var: existing_subnet_item
+    label: "{{ existing_subnet_item.subnet }}"
+  with_items: "{{ existing_subnets.data }}"
+  register: purged_subnets
+
+- name: Creating DHCP subnets
+  oxlorg.opnsense.dhcp_subnet:
+    subnet: "{{ subnet_id }}"
+
+    pools: "{{ subnet.pools | default(omit) }}"
+    description: "{{ subnet.desc | default(omit) }}"
+    gateway: "{{ subnet.gateway | default(omit) }}"
+    dns: "{{ subnet.dns | default(omit) }}"
+
+    routes: "{{ subnet.routes | default(omit) }}"
+    domain: "{{ subnet.domain | default(omit) }}"
+    domain_search: "{{ subnet.domain_search | default(omit) }}"
+    ntp_servers: "{{ subnet.ntp_servers | default(omit) }}"
+    time_servers: "{{ subnet.time_servers | default(omit) }}"
+    next_server: "{{ subnet.next_server | default(omit) }}"
+    tftp_server: "{{ subnet.tftp_server | default(omit) }}"
+    tftp_file: "{{ subnet.tftp_file | default(omit) }}"
+
+    auto_options: false
+    ipv: 4
+    state: "present"
+    match_fields: ["subnet"]
+    reload: false
+
+  vars:
+    subnet: "{{ subnet_item.value }}"
+    subnet_id: "{{ subnet_item.key }}"
+
+  loop_control:
+    loop_var: subnet_item
+    label: "{{ subnet_item.key }}"
+  with_dict: "{{ opnsense_dhcp_subnets }}"
+  register: created_subnets
+
+# DHCP reservations management
+- name: Pulling existing DHCP reservations
+  oxlorg.opnsense.list:
+    target: dhcp_reservation
+  register: existing_reservations
+
+- name: Purging unconfigured DHCP reservations
+  oxlorg.opnsense.dhcp_reservation:
+    mac: "{{ existing_reservation_item.mac }}"
+    ip: "{{ existing_reservation_item.ip }}"
+
+    state: "absent"
+    reload: false
+
+  when: existing_reservation_item.mac not in opnsense_dhcp_reservations
+
+  loop_control:
+    loop_var: existing_reservation_item
+    label: "{{ existing_reservation_item.mac }}"
+  with_items: "{{ existing_reservations.data }}"
+  register: purged_reservations
+
+- name: Creating DHCP reservations
+  oxlorg.opnsense.dhcp_reservation:
+    mac: "{{ reservation_id }}"
+
+    subnet: "{{ reservation.subnet | default(omit) }}"
+    ip: "{{ reservation.ip | default(omit) }}"
+    hostname: "{{ reservation.name | default(omit) }}"
+    description: "{{ reservation.desc | default(omit) }}"
+
+    state: "present"
+    reload: false
+
+  vars:
+    reservation: "{{ reservation_item.value }}"
+    reservation_id: "{{ reservation_item.key }}"
+
+  loop_control:
+    loop_var: reservation_item
+    label: "{{ reservation_item.key }}"
+  with_dict: "{{ opnsense_dhcp_reservations }}"
+  register: created_reservations
+
+# A reload for everything
+- name: Reload dhcp config
+  oxlorg.opnsense.reload:
+    target: "dhcp"
+  when: purged_subnets.changed or created_subnets.changed or purged_reservations.changed or created_reservations.changed

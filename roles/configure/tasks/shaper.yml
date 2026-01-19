@@ -1,0 +1,153 @@
+---
+# purge rules
+- name: Pulling existing shaper rules
+  oxlorg.opnsense.list:
+    target: shaper_rule
+  register: existing_rules
+
+- name: Purging unconfigured shaper rules
+  oxlorg.opnsense.shaper_rule:
+    description: "{{ existing_rule_id }}"
+
+    state: "absent"
+    reload: false
+
+  when: existing_rule_id not in opnsense_shaper_rules
+
+  vars:
+    existing_rule_id: "{{ existing_rule_item.description }}"
+
+  loop_control:
+    loop_var: existing_rule_item
+    label: "{{ existing_rule_item.description }}"
+  with_items: "{{ existing_rules.data }}"
+  register: purged_rules
+
+# purge queues
+- name: Pulling existing shaper queues
+  oxlorg.opnsense.list:
+    target: shaper_queue
+  register: existing_queues
+
+- name: Purging unconfigured shaper pipes
+  oxlorg.opnsense.shaper_queue:
+    description: "{{ existing_queue_id }}"
+
+    state: "absent"
+    reload: false
+
+  when: existing_queue_id not in opnsense_shaper_queues
+
+  vars:
+    existing_queue_id: "{{ existing_queue_item.description }}"
+
+  loop_control:
+    loop_var: existing_queue_item
+    label: "{{ existing_queue_item.description }}"
+  with_items: "{{ existing_queues.data }}"
+  register: purged_queues
+
+# purge pipes
+- name: Pulling existing shaper pipes
+  oxlorg.opnsense.list:
+    target: shaper_pipe
+  register: existing_pipes
+
+- name: Purging unconfigured shaper pipes
+  oxlorg.opnsense.shaper_pipe:
+    description: "{{ existing_pipe_id }}"
+
+    state: "absent"
+    reload: false
+
+  when: existing_pipe_id not in opnsense_shaper_pipes
+
+  vars:
+    existing_pipe_id: "{{ existing_pipe_item.description }}"
+
+  loop_control:
+    loop_var: existing_pipe_item
+    label: "{{ existing_pipe_item.description }}"
+  with_items: "{{ existing_pipes.data }}"
+  register: purged_pipes
+
+# create pipes
+- name: Creating shaper pipes
+  oxlorg.opnsense.shaper_pipe:
+    description: "{{ pipe_id }}"
+
+    bandwidth: "{{ pipe.bandwidth | default(omit) }}"
+    bandwidth_metric: "{{ pipe.metric | default('Mbit') }}"
+    mask: "{{ pipe.mask | default(omit) }}"
+    queue: "{{ pipe.queue | default(omit) }}"
+    buckets: "{{ pipe.buckets | default(omit) }}"
+
+    state: "present"
+    reload: false
+
+  vars:
+    pipe: "{{ pipe_item.value }}"
+    pipe_id: "{{ pipe_item.key }}"
+
+  loop_control:
+    loop_var: pipe_item
+    label: "{{ pipe_item.key }}"
+  with_dict: "{{ opnsense_shaper_pipes }}"
+  register: created_pipes
+
+# create queues
+- name: Creating shaper queues
+  oxlorg.opnsense.shaper_queue:
+    description: "{{ queue_id }}"
+
+    pipe: "{{ queue.pipe | default(omit) }}"
+    weight: "{{ queue.weight | default(omit) }}"
+    mask: "{{ queue.mask | default(omit) }}"
+
+    state: "present"
+    reload: false
+
+  vars:
+    queue: "{{ queue_item.value }}"
+    queue_id: "{{ queue_item.key }}"
+
+  loop_control:
+    loop_var: queue_item
+    label: "{{ queue_item.key }}"
+  with_dict: "{{ opnsense_shaper_queues }}"
+  register: created_queues
+
+# create rules
+- name: Creating shaper rules
+  oxlorg.opnsense.shaper_rule:
+    description: "{{ rule_id }}"
+
+    target_pipe: "{{ rule.pipe | default(omit) }}"
+    target_queue: "{{ rule.queue | default(omit) }}"
+    sequence: "{{ rule.seq | default(omit) }}"
+    interface: "{{ rule.int | default(omit) }}"
+    interface2: "{{ rule.int2 | default(omit) }}"
+    source_net: "{{ rule.src | default(omit) }}"
+    source_port: "{{ rule.src_port | default(omit) }}"
+    destination_net: "{{ rule.dst | default(omit) }}"
+    destination_port: "{{ rule.dst_port | default(omit) }}"
+    direction: "{{ rule.dir | default(omit) }}"
+
+    state: "present"
+    reload: false
+
+  vars:
+    rule: "{{ rule_item.value }}"
+    rule_id: "{{ rule_item.key }}"
+
+  loop_control:
+    loop_var: rule_item
+    label: "{{ rule_item.key }}"
+  with_dict: "{{ opnsense_shaper_rules }}"
+  register: created_rules
+
+# reload everything
+- name: Reload shaper config
+  oxlorg.opnsense.reload:
+    target: "shaper"
+  when: created_pipes.changed or purged_pipes.changed or created_queues.changed or purged_queues.changed or created_rules.changed or purged_rules.changed
