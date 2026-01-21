@@ -36,7 +36,17 @@
           "type": "boolean"
         },
         "src": {
-          "type": "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
         },
         "src_port": {
           "oneOf": [
@@ -54,7 +64,17 @@
           "type": "boolean"
         },
         "dst": {
-          "type": "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
         },
         "dst_port": {
           "oneOf": [

@@ -21,7 +21,17 @@
           "type": "string"
         },
         "src": {
-          "type": "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
         },
         "src_port": {
           "oneOf": [
@@ -36,7 +46,17 @@
           ]
         },
         "dst": {
-          "type": "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
         },
         "dst_port": {
           "oneOf": [
