@@ -1,0 +1,8 @@
+argument_specs:
+  main:
+    short_description: configures essential parts of OPNsense
+    description:
+      - This role is able to configure all the (in my opinion) most essential parts of a OPNsense instance
+    author:
+      - Nils Ost (@nils-ost)
+    version_added: 1.0.0

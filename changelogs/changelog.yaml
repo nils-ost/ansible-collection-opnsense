@@ -1,0 +1,20 @@
+ancestor: null
+releases:
+  1.0.0:
+    changes:
+      release_summary:
+        "This is the first proper release of ``nils_ost.opnsense``
+        collection on 2026-01-22.
+
+        The added Role was just carried over from an other local project."
+    fragments:
+      - v1.0.0.yml
+    release_date: "2026-01-22"
+  1.0.1:
+    changes:
+      release_summary:
+        Just a fast patch after the first release, to add metadata
+        to 'configure' role
+    fragments:
+      - v1.0.1.yml
+    release_date: "2026-01-22"
