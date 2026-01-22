@@ -1,4 +1,4 @@
-# nils_ost.opnsense.configureS
+# nils_ost.opnsense.configure
 
 **configures OPNsense-Services by group or host variables**
 
@@ -6,6 +6,8 @@ Version added: 1.0.0
 
 - [Synopsis](#synopsis)
 - [Role Variables](#role-variables)
+  - [Structure of: opnsense_interfaces](#structure-of-opnsense_interfaces)
+  - [Structure of: opnsense_gateway_groups](#structure-of-opnsense_gateway_groups)
   - [Structure of: opnsense_vlans](#structure-of-opnsense_vlans)
   - [Structure of: opnsense_gateways](#structure-of-opnsense_gateways)
   - [Structure of: opnsense_dhcp](#structure-of-opnsense_dhcp)
@@ -17,6 +19,7 @@ Version added: 1.0.0
   - [Structure of: opnsense_shaper_queues](#structure-of-opnsense_shaper_queues)
   - [Structure of: opnsense_shaper_rules](#structure-of-opnsense_shaper_rules)
   - [Structure of: opnsense_rules](#structure-of-opnsense_rules)
+  - [Structure of: opnsense_tailscale_advertised_routes](#structure-of-opnsense_tailscale_advertised_routes)
 - [Pre-Requirements](#pre-requirements)
 - [Full usage Example](#full-usage-example)
   - [Playbook](#playbook)
@@ -24,7 +27,39 @@ Version added: 1.0.0
 
 ## Synopsis
 
-Describe what it does and which modules/services are configured
+This role is able to configure all the (in my opinion) most essential parts of a OPNsense instance.
+
+**BUT** due to missing API endpoints (on OPNsense side) not everything (required) is possible.
+Namely these are: Interface Assingments, Interface (IP) configuration and gateway group configuration.
+Those parts you need to configure by hand, but you are getting hints during the role run, when and how to configure these.
+
+The services and modules, this role takes care of, are:
+
+- VLAN (Devices)
+- Gateways
+- DHCP
+- (Firewall) Aliases
+- (Firewall) Rules
+- (Firewall) Shaper
+- NAT
+- Tailscale
+- Interface Assignments *by hand*
+- Interface IPs *by hand*
+- Gateway Groups *by hand*
+
+All the configuration comes from role variables (see below). If a variable is empty the corresponding tasks of the role are ignored.
+Therefor each service/module does have a *trigger* variable, which needs to be filled, to configure the corresponding part within OPNsense:
+
+| Service/Module                     | Trigger Variable                     |
+| ---------------------------------- | ------------------------------------ |
+| `Interfaces->Devices->VLAN`        | opnsense_vlans                       |
+| `System->Gateways->Configuration`  | opnsense_gateways                    |
+| `Services->Kea DHCP->Kea DHCPv4`   | opnsense_dhcp                        |
+| `Firewall->Aliases`                | opnsense_aliases                     |
+| `Firewall->Automation->Source NAT` | opnsense_nat_outbound                |
+| `Firewall->Shaper`                 | opnsense_shaper_pipes                |
+| `Firewall->Automation->Filter`     | opnsense_rules                       |
+| `VPN->Tailscale`                   | opnsense_tailscale_advertised_routes |
 
 ## Role Variables
 
@@ -42,10 +77,67 @@ Describe what it does and which modules/services are configured
 | opnsense_shaper_pipes                | dict | {}      | pipes definition for firewall shaper                                                           |
 | opnsense_shaper_queues               | dict | {}      | queues definition for firewall shaper                                                          |
 | opnsense_shaper_rules                | dict | {}      | rules definition for firewall shaper                                                           |
-| opnsense_rules                       | dict | {}      |  |
-| opnsense_tailscale_advertised_routes | dict | {}      |  |
+| opnsense_rules                       | dict | {}      | configure all the rules of your firewall, including default gateways if you like               |
+| opnsense_tailscale_advertised_routes | dict | {}      | let's you configure the routes this OPNsence instance is advertising to your tailscale network |
 
 All used variables (used variables are those which are not empty) are validated at the start of the role. This is done with `ansible.utils.jsonschema` against the schemata found in [criteria](https://github.com/nils-ost/ansible-collection-opnsense/tree/main/roles/configure/criteria).
+
+### Structure of: opnsense_interfaces
+
+This variable contains a list of entrys, where each entry is a dict. This dict needs to have three keys (later called variables) with their corresponding values.
+
+> [!NOTE]
+> The content of this variable is not used for any configuration. It is just printed as a reminder to configure your interface assignments and IPs accordingly after the VLAN configuration changed.
+
+The variables on second-level are:
+
+| Variable   | Type | Comment                                      |
+| ---------- | ---- | -------------------------------------------- |
+| interface  | str  | descriptive name of the interface            |
+| assignment | str  | (generated) device name                      |
+| ip         | str  | IP that should be assigned to this interface |
+
+#### Example
+
+```yaml
+opnsense_interfaces:
+  - interface: lan
+    assignment: lan
+    ip: 192.168.1.1/24
+  - interface: iot
+    assignment: opt1
+    ip: 192.168.2.1/24
+  - interface: dsl
+    assignment: wan
+    ip: 192.168.0.3/24
+```
+
+### Structure of: opnsense_gateway_groups
+
+This variable contains a list of entrys, where each entry is a dict. This dict needs to have at least two keys (later called variables) with their corresponding values.
+
+> [!NOTE]
+> The content of this variable is not used for any configuration. It is just printed as a reminder to configure your gateway groups accordingly after the gateway configuration changed.
+
+The variables on second-level are:
+
+| Variable        | Type | Comment                                                                                                                            |
+| --------------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| name            | str  | name of the gateway group, that can be referenced later                                                                            |
+| <gateway name\> | str  | for each gateway that should get a tier in this gateway group one entry, the values need to start with *tier* followed by a number |
+
+#### Example
+
+```yaml
+opnsense_gateway_groups:
+  - name: GWG_failover
+    GW_FIBER: tier1
+    GW_DSL: tier2
+    GW_5G: tier3
+  - name: GWG_balance
+    GW_FIBER: tier1
+    GW_DSL: tier1
+```
 
 ### Structure of: opnsense_vlans
 
@@ -425,12 +517,216 @@ opnsense_rules:
     enabled: true
 ```
 
+### Structure of: opnsense_tailscale_advertised_routes
+
+It's a dict, where the key is just a description of your route and the value is the route itself in CIDR notation.
+
+If you have at least one route defined, the role is going to install the tailscale plugin for you. Also there are hints for manual step you have to do by hand.
+This role is just configuring the advertised routes, nothing more.
+
+> [!WARNING]
+> If this variable is not empty, all routes (identified by their description) that are not contained in this dict, are purged when running this role.
+> **BUT** if you had routes in this dict, and then empty it, the role ignores this variable and keeps the tailscale config as it was before.
+
+#### Example
+
+```yaml
+opnsense_tailscale_advertised_routes:
+  nas: 192.168.1.9/32
+```
+
 ## Pre-Requirements
 
-install, local-access, https and api-key
+Before you start running this role, you need to setup/prepare your OPNsense instance.
+
+First install OPNsense and setup (at least) the local access, for the control node to reach the system.
+Next enable https `System->Settings->Administration` as this role is only able to communicate to the API via https.
+And finally generate a API key/secret pair for the root user `System->Access->Users` which you should store in some fault variables, to be used in your playbook.
 
 ## Full usage Example
 
+Here you have a minimalistic example of a playbook using this role, with a corresponding variables definition.
+
 ### Playbook
 
+```yaml
+- name: configure OPNsense router
+
+  hosts: router
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - secrets.yml
+
+  module_defaults:
+    group/oxlorg.opnsense.all:
+      firewall: "{{ ansible_host }}"
+      ssl_verify: false
+      api_key: "{{ router_api_key }}"
+      api_secret: "{{ router_api_secret }}"
+
+  roles:
+    - nils_ost.opnsense.configure
+```
+
+You have to define `connection: local` on playbook level, as all tasks in this role need to run from your control node, and the role itself does not take care about this.
+
+Also the connection to your OPNsense instance have to be defined in the playbook (the variables `router_api_key` and `router_api_secret` come from the vault file `secrets.yml`)
+
 ### Variables-Definition
+
+```yaml
+---
+opnsense_hw_interface: em1
+
+# needs to be configured manually (just used within this variables definition)
+opnsense_interface_assignments:
+  lan: lan
+  iot: opt1
+  dsl: wan
+  5g: opt2
+
+# needs to be configured manually (this is just printed as a helper, please update when you are altering interfaces)
+opnsense_interfaces:
+  - interface: lan
+    assignment: "{{ opnsense_interface_assignments['lan'] }}"
+    ip: 192.168.1.1/24
+  - interface: iot
+    assignment: "{{ opnsense_interface_assignments['iot'] }}"
+    ip: 192.168.2.1/24
+  - interface: dsl
+    assignment: "{{ opnsense_interface_assignments['dsl'] }}"
+    ip: 192.168.0.3/24
+  - interface: 5g
+    assignment: "{{ opnsense_interface_assignments['5g'] }}"
+    ip: 192.168.3.3/24
+  - interface: nlptmgmt
+
+# needs to be configured manually (this is just printed as a helper, please update when you are altering gateways)
+opnsense_gateway_groups:
+  - name: GWG_failover
+    GW_DSL: tier1
+    GW_5G: tier2
+
+opnsense_vlans:
+  lan:
+    vlan: 1
+    parent: "{{ opnsense_hw_interface }}"
+  iot:
+    vlan: 2
+    parent: "{{ opnsense_hw_interface }}"
+  dsl:
+    vlan: 50
+    parent: "{{ opnsense_hw_interface }}"
+  5g:
+    vlan: 51
+    parent: "{{ opnsense_hw_interface }}"
+
+opnsense_gateways:
+  GW_DSL:
+    int: "{{ opnsense_interface_assignments['dsl'] }}"
+    ip: 192.168.0.1
+    monitor: 8.8.8.8
+    default_gw: true
+    priority: 253
+  GW_5G:
+    int: "{{ opnsense_interface_assignments['5g'] }}"
+    ip: 192.168.3.1
+    monitor: 8.8.4.4
+    default_gw: false
+    priority: 254
+
+opnsense_dhcp:
+  enabled: true
+  interfaces:
+    - "{{ opnsense_interface_assignments['lan'] }}"
+  auto_fw_rules: true
+  lifetime: 3600
+
+opnsense_dhcp_subnets:
+  192.168.1.0/24:
+    desc: lan
+    pools:
+      - 192.168.1.10-192.168.1.100
+    gateway: 192.168.1.1
+    dns: 192.168.1.2
+
+opnsense_dhcp_reservations:
+  11:22:33:44:55:66:
+    subnet: 192.168.1.0/24
+    ip: 192.168.1.11
+    name: eggphone
+    desc: My cellphone
+  77:88:99:aa:bb:cc:
+    subnet: 192.168.1.0/24
+    ip: 192.168.1.12
+    name: universe
+    desc: My tablet
+
+opnsense_aliases:
+  workstation:
+    type: host
+    content: 192.168.1.101
+  nas:
+    type: host
+    content: 192.168.1.9
+
+opnsense_nat_outbound:
+  workstation to iot-net:
+    int: "{{ opnsense_interface_assignments['iot'] }}"
+    src: workstation
+    dst: "{{ opnsense_interface_assignments['iot'] }}"
+    target: "{{ opnsense_interface_assignments['iot'] }}"
+
+opnsense_shaper_pipes:
+  p_router_max:
+    bandwidth: 200
+
+opnsense_shaper_queues:
+  q_lan:
+    weight: 30
+    pipe: p_router_max
+  q_iot:
+    weight: 20
+    pipe: p_router_max
+
+opnsense_shaper_rules:
+  r_lan:
+    seq: 1
+    int: "{{ opnsense_interface_assignments['lan'] }}"
+    queue: q_lan
+  r_iot:
+    seq: 2
+    int: "{{ opnsense_interface_assignments['iot'] }}"
+    queue: q_iot
+
+opnsense_tailscale_advertised_routes:
+  nas: 192.168.1.9/32
+
+opnsense_rules:
+  block someone:
+    seq: 1
+    int: "{{ opnsense_interface_assignments['lan'] }}"
+    src: "192.168.1.47"
+    action: "reject"
+    enabled: true
+  workstation to iot-net:
+    seq: 2
+    int: "{{ opnsense_interface_assignments['lan'] }}"
+    src: workstation
+    dst: "{{ opnsense_interface_assignments['iot'] }}"
+    action: "pass"
+    enabled: true
+  lan default gw:
+    seq: 3
+    int: "{{ opnsense_interface_assignments['lan'] }}"
+    src: "{{ opnsense_interface_assignments['lan'] }}"
+    action: "pass"
+    gw: GWG_failover
+    enabled: true
+```
+
+The variables `opnsense_hw_interface` and `opnsense_interface_assignments` are just used within this variables definition, to ensure consistency.
+
+Personally I like to place a definition like this in a group_vars file, but as a host_vars file it would work the same (but just for one host, in case you have multiple OPNsense instances ;) )
