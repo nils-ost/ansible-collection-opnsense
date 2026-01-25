@@ -26,6 +26,7 @@
   oxlorg.opnsense.nat_source:
     description: "{{ outbound_id }}"
     sequence: "{{ outbound.seq | default(omit) }}"
+    enabled: "{{ outbound.enabled | default(true) }}"
 
     interface: "{{ outbound.int | default(omit) }}"
     source: "{{ outbound.src | default(omit) }}"
@@ -47,3 +48,11 @@
     label: "{{ outbound_item.key }}"
   with_dict: "{{ opnsense_nat_outbound }}"
   register: created_outbounds
+
+- name: Reload NAT outbounds config
+  oxlorg.opnsense.raw:
+    module: firewall
+    controller: source_nat
+    command: apply
+    action: post
+  when: purged_outbounds.changed or created_outbounds.changed
