@@ -4,26 +4,41 @@
 
 Version added: 1.0.0
 
-- [Synopsis](#synopsis)
-- [Role Variables](#role-variables)
-  - [Structure of: opnsense_interfaces](#structure-of-opnsense_interfaces)
-  - [Structure of: opnsense_gateway_groups](#structure-of-opnsense_gateway_groups)
-  - [Structure of: opnsense_vlans](#structure-of-opnsense_vlans)
-  - [Structure of: opnsense_gateways](#structure-of-opnsense_gateways)
-  - [Structure of: opnsense_dhcp](#structure-of-opnsense_dhcp)
-  - [Structure of: opnsense_dhcp_subnets](#structure-of-opnsense_dhcp_subnets)
-  - [Structure of: opnsense_dhcp_reservations](#structure-of-opnsense_dhcp_reservations)
-  - [Structure of: opnsense_aliases](#structure-of-opnsense_aliases)
-  - [Structure of: opnsense_nat_outbound](#structure-of-opnsense_nat_outbound)
-  - [Structure of: opnsense_shaper_pipes](#structure-of-opnsense_shaper_pipes)
-  - [Structure of: opnsense_shaper_queues](#structure-of-opnsense_shaper_queues)
-  - [Structure of: opnsense_shaper_rules](#structure-of-opnsense_shaper_rules)
-  - [Structure of: opnsense_rules](#structure-of-opnsense_rules)
-  - [Structure of: opnsense_tailscale_advertised_routes](#structure-of-opnsense_tailscale_advertised_routes)
-- [Pre-Requirements](#pre-requirements)
-- [Full usage Example](#full-usage-example)
-  - [Playbook](#playbook)
-  - [Variables-Definition](#variables-definition)
+- [nils\_ost.opnsense.configure](#nils_ostopnsenseconfigure)
+  - [Synopsis](#synopsis)
+  - [Role Variables](#role-variables)
+    - [Structure of: opnsense\_interfaces](#structure-of-opnsense_interfaces)
+      - [Example](#example)
+    - [Structure of: opnsense\_gateway\_groups](#structure-of-opnsense_gateway_groups)
+      - [Example](#example-1)
+    - [Structure of: opnsense\_vlans](#structure-of-opnsense_vlans)
+      - [Example](#example-2)
+    - [Structure of: opnsense\_gateways](#structure-of-opnsense_gateways)
+      - [Example](#example-3)
+    - [Structure of: opnsense\_dhcp](#structure-of-opnsense_dhcp)
+      - [Example](#example-4)
+    - [Structure of: opnsense\_dhcp\_subnets](#structure-of-opnsense_dhcp_subnets)
+      - [Example](#example-5)
+    - [Structure of: opnsense\_dhcp\_reservations](#structure-of-opnsense_dhcp_reservations)
+      - [Example](#example-6)
+    - [Structure of: opnsense\_aliases](#structure-of-opnsense_aliases)
+      - [Example](#example-7)
+    - [Structure of: opnsense\_nat\_outbound](#structure-of-opnsense_nat_outbound)
+      - [Example](#example-8)
+    - [Structure of: opnsense\_shaper\_pipes](#structure-of-opnsense_shaper_pipes)
+      - [Example](#example-9)
+    - [Structure of: opnsense\_shaper\_queues](#structure-of-opnsense_shaper_queues)
+      - [Example](#example-10)
+    - [Structure of: opnsense\_shaper\_rules](#structure-of-opnsense_shaper_rules)
+      - [Example](#example-11)
+    - [Structure of: opnsense\_rules](#structure-of-opnsense_rules)
+      - [Example](#example-12)
+    - [Structure of: opnsense\_tailscale\_advertised\_routes](#structure-of-opnsense_tailscale_advertised_routes)
+      - [Example](#example-13)
+  - [Pre-Requirements](#pre-requirements)
+  - [Full usage Example](#full-usage-example)
+    - [Playbook](#playbook)
+    - [Variables-Definition](#variables-definition)
 
 ## Synopsis
 
@@ -347,16 +362,17 @@ Created rules are found under `Firewall->Automation->Source NAT` **not** at `Fir
 
 The possible variables on second-level are:
 
-| Variable    | Type      | Required | Comment                                                       |
-| ----------- | --------- | -------- | ------------------------------------------------------------- |
-| seq         | int       | false    | Order in which the rule will be evaluated (lowest first)      |
-| int         | str       | false    | Interface                                                     |
-| src         | str       | false    | Source                                                        |
-| src_port    | int\|str  | false    | Sourece-Port                                                  |
-| dst         | str       | false    | Destination                                                   |
-| dst_port    | int\|str  | false    | Destination-Port                                              |
-| target      | str       | false    | Translation / target matching packets will be mapped this IP  |
-| target_port | int       | false    | Translation-Port                                              |
+| Variable    | Type      | Required | Comment                                                                                                      |
+| ----------- | --------- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| seq         | int       | false    | Order in which the rule will be evaluated (lowest first)                                                     |
+| int         | str       | false    | Interface                                                                                                    |
+| src         | str       | false    | Source                                                                                                       |
+| src_port    | int\|str  | false    | Sourec-Port                                                                                                  |
+| dst         | str       | false    | Destination                                                                                                  |
+| dst_port    | int\|str  | false    | Destination-Port                                                                                             |
+| target      | str       | false    | Translation matching packets will be mapped to. Needs to be an IP or interface-name followed by appendix ip  |
+| target_port | int       | false    | Translation-Port                                                                                             |
+| enabled     | bool      | false    | Enable this rule/filter                                                                                      |
 
 #### Example
 
@@ -366,7 +382,7 @@ opnsense_nat_outbound:
     int: "{{ opnsense_interface_assignments['lan'] }}"
     src: workstation
     dst: "{{ opnsense_interface_assignments['iot'] }}"
-    target: "{{ opnsense_interface_assignments['iot'] }}"
+    target: "{{ opnsense_interface_assignments['iot'] }}ip"
 ```
 
 ### Structure of: opnsense_shaper_pipes
