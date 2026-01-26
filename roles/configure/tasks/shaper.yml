@@ -75,6 +75,7 @@
 - name: Creating shaper pipes
   oxlorg.opnsense.shaper_pipe:
     description: "{{ pipe_id }}"
+    enabled: "{{ pipe.enabled | default(true) }}"
 
     bandwidth: "{{ pipe.bandwidth | default(omit) }}"
     bandwidth_metric: "{{ pipe.metric | default('Mbit') }}"
@@ -99,6 +100,7 @@
 - name: Creating shaper queues
   oxlorg.opnsense.shaper_queue:
     description: "{{ queue_id }}"
+    enabled: "{{ queue.enabled | default(true) }}"
 
     pipe: "{{ queue.pipe | default(omit) }}"
     weight: "{{ queue.weight | default(omit) }}"
@@ -121,6 +123,7 @@
 - name: Creating shaper rules
   oxlorg.opnsense.shaper_rule:
     description: "{{ rule_id }}"
+    enabled: "{{ rule.enabled | default(true) }}"
 
     target_pipe: "{{ rule.pipe | default(omit) }}"
     target_queue: "{{ rule.queue | default(omit) }}"

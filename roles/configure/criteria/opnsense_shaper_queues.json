@@ -15,6 +15,9 @@
         "mask": {
           "type": "string",
           "enum": ["none", "src-ip", "dst-ip"]
+        },
+        "enabled": {
+          "type": "boolean"
         }
       },
       "required": ["pipe"]

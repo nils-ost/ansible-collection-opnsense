@@ -402,6 +402,7 @@ The possible variables on second-level are:
 | mask      | str  | false    | Dynamic pipe creation by src or dst, or none for everything in one pipe (one of: none, src-ip, dst-ip)  |
 | queue     | str  | false    | Number of dynamic queues, leave empty for default                                                       |
 | buckets   | str  | false    | Specifies the size of the hash table used for storing the various dynamic pipes                         |
+| enabled   | bool | false    | Enable this pipe                                                                                        |
 
 #### Example
 
@@ -426,6 +427,7 @@ The possible variables on second-level are:
 | pipe     | str  | true     | Connected pipe for this queue                                                                            |
 | weight   | int  | false    | Weight of this queue (1..100), used to prioritize within a pipe. (1 is low, 100 is high)                 |
 | mask     | str  | false    | Dynamic queue creation by src or dst, or none for everything in one queue (one of: none, src-ip, dst-ip) |
+| enabled  | bool | false    | Enable this queue                                                                                        |
 
 #### Example
 
@@ -461,6 +463,7 @@ The possible variables on second-level are:
 | dst      | list\|str | false    | Destination ip(s) or network(s)                                                                                        |
 | dst_port | int\|str  | false    | Destination port (range)                                                                                               |
 | dir      | str       | false    | Matches incoming (in) or outgoing (out) packets or both (if left empty)                                                |
+| enabled  | bool      | false    | Enable this rule                                                                                                       |
 
 #### Example
 

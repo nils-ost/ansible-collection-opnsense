@@ -73,6 +73,9 @@
         "dir": {
           "type": "string",
           "enum": ["in", "out"]
+        },
+        "enabled": {
+          "type": "boolean"
         }
       }
     }
