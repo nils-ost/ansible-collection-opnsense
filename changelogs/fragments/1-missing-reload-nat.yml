@@ -1,7 +1,0 @@
----
-bugfixes:
-  - Added reload task, after NAT outbound filter was added, changed or purged
-
-minor_changes:
-  - Added ``enabled`` attribut to ``opnsense_nat_outbound``, to be able to disable a filter without deleting it
-  - Changed validation for ``target`` attribut of ``opnsense_nat_outbound`` to revoke problematic inputs

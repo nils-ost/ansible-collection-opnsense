@@ -4,6 +4,28 @@ nils\_ost opnsense Collection Release Notes
 
 .. contents:: Topics
 
+v1.1.0
+======
+
+Release Summary
+---------------
+
+With this Release the NAT Outbound rules now work as intended
+
+Minor Changes
+-------------
+
+- Added ``enabled`` attribut to ``opnsense_nat_outbound``, to be able to disable a filter without deleting it
+- Added ``enabled`` attribut to ``opnsense_shaper_pipes``, to be able to disable a pipe without deleting it
+- Added ``enabled`` attribut to ``opnsense_shaper_queues``, to be able to disable a queue without deleting it
+- Added ``enabled`` attribut to ``opnsense_shaper_rules``, to be able to disable a rule without deleting it
+- Changed validation for ``target`` attribut of ``opnsense_nat_outbound`` to revoke problematic inputs
+
+Bugfixes
+--------
+
+- Added reload task, after NAT outbound filter was added, changed or purged
+
 v1.0.1
 ======
 

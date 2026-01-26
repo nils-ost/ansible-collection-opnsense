@@ -18,3 +18,23 @@ releases:
     fragments:
       - v1.0.1.yml
     release_date: "2026-01-22"
+  1.1.0:
+    changes:
+      bugfixes:
+        - Added reload task, after NAT outbound filter was added, changed or purged
+      minor_changes:
+        - Added ``enabled`` attribut to ``opnsense_nat_outbound``, to be able to disable
+          a filter without deleting it
+        - Added ``enabled`` attribut to ``opnsense_shaper_pipes``, to be able to disable
+          a pipe without deleting it
+        - Added ``enabled`` attribut to ``opnsense_shaper_queues``, to be able to disable
+          a queue without deleting it
+        - Added ``enabled`` attribut to ``opnsense_shaper_rules``, to be able to disable
+          a rule without deleting it
+        - Changed validation for ``target`` attribut of ``opnsense_nat_outbound`` to
+          revoke problematic inputs
+      release_summary: With this Release the NAT Outbound rules now work as intended
+    fragments:
+      - 1-missing-reload-nat.yml
+      - v1.1.0.yml
+    release_date: "2026-01-26"
