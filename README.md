@@ -15,12 +15,13 @@ And thats it: A collection for my purposes but available for everyone who find a
 
   * python:
     * httpx *>=0.28.1*
+    * prettytable *>=3.17.0*
   * collections:
     * community.general *>=12.2.0*
     * oxlorg.opnsense *>=25.7.8*
 
 ```
-pip install httpx
+pip install httpx prettytable
 ansible-galaxy collection install community.general --upgrade
 ansible-galaxy collection install oxlorg.opnsense
 ```
