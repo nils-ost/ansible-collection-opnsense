@@ -30,7 +30,7 @@ antsibull-changelog lint
 
   * build collection `rm *.tar.gz; ansible-galaxy collection build`
   * `cd` to your local testing project and "pull in" the collection (this ensures the correct environment for this project is used)
-    * `ansible-galaxy collection install --force ~/workspace/ansible-collection-opnsense/nils_ost-opnsense-1.1.0.tar.gz`
+    * `ansible-galaxy collection install --force ~/workspace/ansible-collection-opnsense/nils_ost-opnsense-1.1.1.tar.gz`
 
 ## doing a release
 
@@ -38,8 +38,8 @@ antsibull-changelog lint
   * create changelog fragement in `changelogs/fragments` with release-version, that contains at least `release_summary` (see example below)
   * generate changelog `antsibull-changelog release`
   * build collection `rm *.tar.gz; ansible-galaxy collection build`
-  * publish collection `ansible-galaxy collection publish nils_ost-opnsense-1.1.0.tar.gz --token`
-  * commit everything and tag the commit with release-version (e.g. `v1.1.0`)
+  * publish collection `ansible-galaxy collection publish nils_ost-opnsense-1.1.1.tar.gz --token`
+  * commit everything and tag the commit with release-version (e.g. `v1.1.1`)
   * push to github `git push origin main; git push origin --tags`
 
 ### changelog fragement for version 1.0.0

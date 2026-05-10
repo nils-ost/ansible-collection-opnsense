@@ -38,3 +38,11 @@ releases:
       - 1-missing-reload-nat.yml
       - v1.1.0.yml
     release_date: "2026-01-26"
+  1.1.1:
+    changes:
+      release_summary:
+        loop var for adding DHCP reservations now also includes the
+        name of the reserveration and not just the MAC addr
+    fragments:
+      - v1.1.1.yml
+    release_date: "2026-05-10"

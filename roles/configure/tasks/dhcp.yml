@@ -125,7 +125,7 @@
 
   loop_control:
     loop_var: reservation_item
-    label: "{{ reservation_item.key }}"
+    label: "{{ reservation_item.key }} - {{ reservation_item.value.name }}"
   with_dict: "{{ opnsense_dhcp_reservations }}"
   register: created_reservations
 

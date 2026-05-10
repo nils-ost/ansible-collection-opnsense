@@ -4,6 +4,14 @@ nils\_ost opnsense Collection Release Notes
 
 .. contents:: Topics
 
+v1.1.1
+======
+
+Release Summary
+---------------
+
+loop var for adding DHCP reservations now also includes the name of the reserveration and not just the MAC addr
+
 v1.1.0
 ======
 

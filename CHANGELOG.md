@@ -2,20 +2,32 @@
 
 **Topics**
 
-- <a href="#v1-1-0">v1\.1\.0</a>
+- <a href="#v1-1-1">v1\.1\.1</a>
   - <a href="#release-summary">Release Summary</a>
+- <a href="#v1-1-0">v1\.1\.0</a>
+  - <a href="#release-summary-1">Release Summary</a>
   - <a href="#minor-changes">Minor Changes</a>
   - <a href="#bugfixes">Bugfixes</a>
 - <a href="#v1-0-1">v1\.0\.1</a>
-  - <a href="#release-summary-1">Release Summary</a>
-- <a href="#v1-0-0">v1\.0\.0</a>
   - <a href="#release-summary-2">Release Summary</a>
+- <a href="#v1-0-0">v1\.0\.0</a>
+  - <a href="#release-summary-3">Release Summary</a>
+
+<a id="v1-1-1"></a>
+
+## v1\.1\.1
+
+<a id="release-summary"></a>
+
+### Release Summary
+
+loop var for adding DHCP reservations now also includes the name of the reserveration and not just the MAC addr
 
 <a id="v1-1-0"></a>
 
 ## v1\.1\.0
 
-<a id="release-summary"></a>
+<a id="release-summary-1"></a>
 
 ### Release Summary
 
@@ -41,7 +53,7 @@ With this Release the NAT Outbound rules now work as intended
 
 ## v1\.0\.1
 
-<a id="release-summary-1"></a>
+<a id="release-summary-2"></a>
 
 ### Release Summary
 
@@ -51,7 +63,7 @@ Just a fast patch after the first release\, to add metadata to \'configure\' rol
 
 ## v1\.0\.0
 
-<a id="release-summary-2"></a>
+<a id="release-summary-3"></a>
 
 ### Release Summary
 
